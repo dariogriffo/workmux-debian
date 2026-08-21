@@ -1,0 +1,52 @@
+#!/usr/bin/make -f
+DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
+WORKMUX_VERSION := $(shell dpkg-parsechangelog -S Version | sed 's/[-~].*//')
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+
+# Upstream tags carry a "v" prefix (e.g. v0.1.243) and the Linux release assets
+# are named after the Go/Debian architecture spelling (amd64, arm64), so no
+# mapping table is needed. Both Linux binaries are statically linked, which is
+# why the package declares no libc dependency and dh_shlibdeps is disabled.
+override_dh_auto_build:
+	@arch="$(DEB_HOST_ARCH)"; \
+	case "$$arch" in \
+		amd64|arm64) ;; \
+		*) echo "Unsupported architecture: $$arch"; exit 1 ;; \
+	esac; \
+	WM_RELEASE="workmux-linux-$$arch"; \
+	echo "Downloading $$WM_RELEASE for $(WORKMUX_VERSION)..."; \
+	wget -q "https://github.com/raine/workmux/releases/download/v$(WORKMUX_VERSION)/$$WM_RELEASE.tar.gz"; \
+	rm -rf "$$WM_RELEASE"; \
+	mkdir -p "$$WM_RELEASE"; \
+	tar -xf "$$WM_RELEASE.tar.gz" -C "$$WM_RELEASE"; \
+	rm -f "$$WM_RELEASE.tar.gz"; \
+	chmod +x "$$WM_RELEASE/workmux"; \
+	mkdir -p completions; \
+	"./$$WM_RELEASE/workmux" completions bash > completions/workmux.bash; \
+	"./$$WM_RELEASE/workmux" completions zsh  > completions/_workmux; \
+	"./$$WM_RELEASE/workmux" completions fish > completions/workmux.fish; \
+	echo "$$WM_RELEASE" > .workmux_release_name
+
+override_dh_auto_install:
+	@WM_RELEASE=$$(cat .workmux_release_name); \
+	install -D -m 755 "$$WM_RELEASE/workmux" debian/workmux/usr/bin/workmux; \
+	install -D -m 644 completions/workmux.bash debian/workmux/usr/share/bash-completion/completions/workmux; \
+	install -D -m 644 completions/workmux.fish debian/workmux/usr/share/fish/vendor_completions.d/workmux.fish; \
+	install -D -m 644 completions/_workmux debian/workmux/usr/share/zsh/vendor-completions/_workmux
+
+override_dh_auto_test:
+
+override_dh_auto_clean:
+	@if [ -f .workmux_release_name ]; then \
+		WM_RELEASE=$$(cat .workmux_release_name); \
+		rm -rf "$$WM_RELEASE" .workmux_release_name || true; \
+	fi
+	rm -rf completions
+
+override_dh_strip:
+
+override_dh_shlibdeps:

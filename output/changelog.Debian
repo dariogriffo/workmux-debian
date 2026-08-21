@@ -1,0 +1,110 @@
+workmux (FULL_VERSION) DIST; urgency=low
+
+  ## v0.1.243 (2026-08-21)
+
+  - Add Grok (SpaceXAI) as a supported agent for status tracking, interactive
+    prompt injection, and skills. `workmux setup` installs status hooks and
+    bundled skills under `~/.grok/` or `$GROK_HOME`.
+    ([#207](https://github.com/raine/workmux/pull/207))
+  - `workmux add --fork` works with Codex. Bare `--fork` picks the Codex session
+    you are in, or the most recent one recorded for the current worktree, and
+    `--fork=<id>` takes a session ID or an unambiguous prefix.
+    ([#229](https://github.com/raine/workmux/issues/229))
+  - The dashboard agents table can be reordered and trimmed with the
+    `dashboard.agent_columns` option.
+    ([#225](https://github.com/raine/workmux/pull/225))
+  - `workmux add --pr` accepts pull request URLs from GitHub Enterprise
+    installations, not only github.com.
+  - Passing `-a`/`--agent` no longer replaces explicitly configured pane commands
+    such as `nvim`, which also stops a second agent from being spawned. The agent
+    goes into a plain shell pane, and layouts where every pane has a command are
+    left as they are. ([#243](https://github.com/raine/workmux/issues/243))
+  - Fix the prompt being injected twice into panes whose command is written out
+    literally as the agent's own command.
+    ([#242](https://github.com/raine/workmux/pull/242))
+
+  ## v0.1.242 (2026-08-20)
+
+  - `workmux setup` installs the Copilot CLI status hook once at the user level
+    (`~/.copilot/hooks/workmux-status.json`), so pane status tracking works in
+    every repository without per-repository setup. Requires Copilot CLI 0.0.422 or
+    later, and unrelated hooks in that file are preserved. If a repository still
+    has a `.github/hooks/workmux-status` directory, remove it to avoid running the
+    hook twice. ([#247](https://github.com/raine/workmux/issues/247))
+
+  ## v0.1.241 (2026-08-20)
+
+  - Harden Git handling across sandbox backends. Container guests can no longer
+    modify shared Git configuration or hooks, while normal commits and branch
+    operations continue to work. Workmux host Git operations also ignore
+    repository-controlled hooks and executable Git settings.
+  - Freeze the effective configuration when a sandbox session starts, preventing
+    guest changes to `.workmux.yaml` from altering host-side spawn, status, merge,
+    or close operations during that session.
+
+  ## v0.1.240 (2026-08-19)
+
+  - Apply configured pane `percentage` values in the Kitty backend, so layouts
+    split the same way they do in tmux. Percentage sizing requires Kitty's
+    `splits` layout; absolute `size` values remain unsupported there.
+    ([#239](https://github.com/raine/workmux/issues/239))
+  - Treat custom tmux `status_icons` as plain text when clearing a status on pane
+    focus, so icons containing tmux syntax work as written.
+
+  ## v0.1.239 (2026-08-18)
+
+  - Set `sidebar.dim_stale: false` to keep stale sidebar rows in their normal status colors instead of dimming them. ([#234](https://github.com/raine/workmux/pull/234))
+  - Keep OpenCode panes marked as working while any parent or subagent session is active, and avoid false completion indicators from untracked or deleted sessions. ([#235](https://github.com/raine/workmux/pull/235))
+  - Detect outdated Pi and Oh My Pi status extensions during `workmux setup` and offer to replace them, preventing excessive status update processes from older extensions.
+
+  ## v0.1.237 (2026-08-09)
+
+  - Make `workmux status --json` return a versioned observation object instead of
+    an array, with scope and state-file diagnostics. Unresolved explicit targets
+    return partial results with a nonzero exit status. ([#210](https://github.com/raine/workmux/issues/210))
+  - Treat `<global>` as empty when the corresponding global hook or file-operation
+    list is unset, allowing shared project configs to work without matching global
+    values. ([#224](https://github.com/raine/workmux/issues/224))
+
+  ## v0.1.236 (2026-08-08)
+
+  - Show working, waiting, and done status icons in Zellij tab titles. ([#220](https://github.com/raine/workmux/pull/220))
+  - Keep agent status updates tied to the correct pane when background hooks run without `TMUX_PANE` (seems to happens with Claude Code occasionally).
+  - Track Codex subagents through new dedicated stop hooks, keeping the pane marked as working until the root turn finishes.
+  - Place new tmux windows in the session whose pane paths best match the current directory when pane context is unavailable, and return an actionable error when multiple sessions match equally well.
+
+  ## v0.1.235 (2026-08-07)
+
+  - Close and remove the correct tmux windows even after they are renamed, without affecting unrelated windows that reuse the original name. ([#212](https://github.com/raine/workmux/issues/212))
+  - Redraw the full sidebar cleanly after terminal resizes, preventing fragments of the previous layout from remaining on screen.
+  - Prevent sidebar auto-exit from killing the active pane in another window. ([#219](https://github.com/raine/workmux/issues/219))
+
+  ## v0.1.234 (2026-08-04)
+
+  - Sort sidebar rows by recent activity or tmux window order with `sidebar.sort`, and show native tmux window numbers in custom layouts with `{window_index}`. ([#214](https://github.com/raine/workmux/issues/214)) ([#215](https://github.com/raine/workmux/pull/215))
+  - Prevent filesystem reads from triggering continuous sidebar refreshes on Linux, eliminating config reload loops and unnecessary CPU use. ([#217](https://github.com/raine/workmux/issues/217)) ([#218](https://github.com/raine/workmux/pull/218))
+  - Keep agent views available and clean up stale state when a tmux pane disappears. ([#213](https://github.com/raine/workmux/issues/213))
+  - Preserve the exact spelling and capitalization of parent tmux session names passed to `workmux add` or `workmux open`.
+  - Accept branch names from automatic naming commands that exit without reading the prompt from stdin.
+  - Let bundled agent skills dispatch cross-project worktrees directly into the requested tmux session without an intermediate window.
+
+  ## v0.1.233 (2026-08-02)
+
+  - Preserve valid auto-generated Git branch names, including slash-separated names such as `fix/issue-123`. ([#206](https://github.com/raine/workmux/issues/206))
+  - Include agent type, working directory, tmux session and window, and last-update time in `workmux status --json`. ([#210](https://github.com/raine/workmux/issues/210))
+  - Keep agents visible in status views when a tmux pane query fails temporarily. ([#209](https://github.com/raine/workmux/issues/209))
+
+  ## v0.1.232 (2026-07-31)
+
+  - Use the mouse throughout the dashboard to switch tabs, select or open rows, run actions, scroll previews and diffs, and navigate files.
+  - Show GitHub checks for remote branches without pull requests in the sidebar and dashboard, including failure indicators for main branches.
+  - Keep sidebar GitHub status refreshes efficient across linked worktrees, reducing redundant requests for the same repository.
+  - Keep the dashboard's current-session filter tied to the active tmux session when opened in a popup.
+  - Make dashboard selections and elapsed times easier to scan with clearer highlighting and subdued long-running timers.
+
+  ## v0.1.231 (2026-07-28)
+
+  - Clear acknowledged waiting or completed statuses from the sidebar immediately when you focus an agent pane.
+  
+  Older entries have been trimmed. The complete upstream changelog lives at
+  https://github.com/raine/workmux/blob/main/CHANGELOG.md

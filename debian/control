@@ -1,0 +1,27 @@
+Source: workmux
+Section: devel
+Priority: optional
+Maintainer: Dario Griffo <dariogriffo@gmail.com>
+Build-Depends: debhelper-compat (= 13), wget, ca-certificates
+Standards-Version: 4.6.2
+Homepage: https://github.com/raine/workmux
+Rules-Requires-Root: no
+
+Package: workmux
+Architecture: amd64 arm64
+Depends: ${misc:Depends}, git
+Recommends: tmux
+Description: git worktrees and tmux windows for parallel development
+ workmux is an opinionated workflow tool that orchestrates git worktrees and
+ tmux windows as isolated development environments, so several features (or
+ several AI coding agents) can be worked on in parallel without stashing,
+ branch switching or conflicts.
+ .
+ A single command creates a worktree with a matching tmux window, copies or
+ symlinks the files a fresh checkout is missing, runs the install commands and
+ starts the agent; another one merges the branch and tears the whole thing down
+ again. It also provides a TUI dashboard and a tmux sidebar for monitoring
+ agent status across worktrees.
+ .
+ tmux is the default backend; kitty, WezTerm and Zellij are also supported,
+ which is why tmux is recommended rather than required.
